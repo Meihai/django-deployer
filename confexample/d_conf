@@ -1,0 +1,29 @@
+# server host addr
+host= 192.168.31.232
+
+# server host ssh port, default 22
+# port= 22
+
+# server login user, default root
+# user= root
+
+# server login password
+password= uphie
+
+# local project dir
+local_project_dir= ~/Python/ShortLink
+
+# remote project dir that project will be deployed into
+remote_project_dir= /var/www/django-app
+
+# remote uwsgi file path that will be used setting up django, default /remote_project_dir/uwsgi.ini
+# remote_uwsgi_path= /var/www/django-app/uwsgi.ini
+
+# remote requirements file that records required python packages, default /remote_project_dir/requirements.txt
+# remote_requirements_path= /var/www/django-app/requirements.txt
+
+# local ignore file path that records which directory or file path will not be deployed, default /local_project_dir/d_ignore
+# ignore_path= /var/www/django-app/d_ignore
+
+# whether project will run 'python manage.py collectstatic' command before deploying, default True
+# collectstatic=True

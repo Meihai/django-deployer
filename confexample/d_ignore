@@ -1,0 +1,30 @@
+# All these path is relevant to your local project dir
+# This file is used for ingoring files when uploading django project.
+
+# sqlite file
+db.sqlite3
+
+# system file generated in mac os
+.DS_Store
+
+# git ignore file
+.gitignore
+
+# static files in debug mode
+static/
+
+# pycharm project files
+.idea/
+
+# git files
+.git/
+
+# markdown files
+*.md
+
+# python cache files
+*/__pycache__/
+
+# django migration files
+*/migrations/
+
