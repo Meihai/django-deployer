@@ -43,6 +43,7 @@ class Deployer:
         remote_uwsgi_path = conf.get('remote_uwsgi_path', join(remote_project_dir, 'uwsgi.ini'))
         remote_requirements_path = conf.get('remote_requirements_path',
                                             join(remote_project_dir, 'requirements.txt'))
+        remote_shell_path = conf.get('remote_shell_path')
         ignore_path = conf.get('ignore_path', join(local_project_dir, 'd_ignore'))
 
         self.host = host
@@ -55,6 +56,7 @@ class Deployer:
         self.local_project_dir = local_project_dir
         self.remote_uwsgi_path = remote_uwsgi_path
         self.remote_requirements_path = remote_requirements_path
+        self.remote_shell_path = remote_shell_path
         self.ignore_path = ignore_path
         self.collectstatic = collectstatic
 
@@ -221,6 +223,10 @@ class Deployer:
         else:
             # uwsgi is not running
             self.__exec_remote_cmd('uwsgi --ini {0}'.format(self.remote_uwsgi_path))
+
+        if self.remote_shell_path:
+            # execute your customized shell script
+            self.__exec_remote_cmd('chmod +x {0} && {0}'.format(self.remote_shell_path))
 
         print('Deployment finished!')
 

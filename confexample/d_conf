@@ -28,8 +28,12 @@ remote_project_dir= /var/www/django-app
 # remote requirements file that records required python packages, default /remote_project_dir/requirements.txt
 # remote_requirements_path= /var/www/django-app/requirements.txt
 
+# the shell script path that will be run after deployment, if you don't have it, comment this line
+# remote_shell_path=/var/www/django-app/run.sh
+
 # local ignore file path that records which directory or file path will not be deployed, default /local_project_dir/d_ignore
 # ignore_path= /var/www/django-app/d_ignore
 
 # whether project will run 'python manage.py collectstatic' command before deploying, default False
 # collectstatic=True
+
