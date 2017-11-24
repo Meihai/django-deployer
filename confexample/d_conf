@@ -1,14 +1,20 @@
 # server host addr
-host= 192.168.31.232
+host= 192.168.31.156
 
 # server host ssh port, default 22
-# port= 22
+# port= 27
+
+# server login private key file,usually named like id_rsa
+pri_key=~/ssh/id_rsa_vm
+
+# password of server login private key file,leave it blank if you don't have
+pri_key_password=uphie
 
 # server login user, default root
 # user= root
 
 # server login password
-password= uphie
+# password= uphie
 
 # local project dir
 local_project_dir= ~/Python/ShortLink
@@ -25,5 +31,5 @@ remote_project_dir= /var/www/django-app
 # local ignore file path that records which directory or file path will not be deployed, default /local_project_dir/d_ignore
 # ignore_path= /var/www/django-app/d_ignore
 
-# whether project will run 'python manage.py collectstatic' command before deploying, default True
+# whether project will run 'python manage.py collectstatic' command before deploying, default False
 # collectstatic=True

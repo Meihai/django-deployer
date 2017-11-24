@@ -2,29 +2,34 @@ import zipfile
 import re
 import os
 import paramiko
+
 import confparser
 from sys import argv
 from os.path import join, relpath, abspath
 from datetime import datetime
 
 
-class Deployer():
+class Deployer:
     def __init__(self, conf_file):
         conf = confparser.parse_conf_file(conf_file)
 
         host = conf.get('host')  # required
         port = conf.get('port', 22)
+        pri_key = conf.get('pri_key')
+        pri_key_password = conf.get('pri_key_password')
         user = conf.get('user', 'root')
-        password = conf.get('password')  # required
+        password = conf.get('password')  # either pri_key or password is required
         local_project_dir = conf.get('local_project_dir')  # required
         remote_project_dir = conf.get('remote_project_dir')  # required
-        collectstatic = str(conf.get('collectstatic', True)) in ('True', 'true')
+        collectstatic = str(conf.get('collectstatic', False)) in ('False', 'false', 'FALSE')
+
+        if not any((pri_key, password)):
+            raise Exception('deploy config is not satisfied,either ssh private key or user&password for login is '
+                            'required')
 
         missed = []
         if not host:
             missed.append('host')
-        if not password:
-            missed.append('password')
         if not local_project_dir:
             missed.append('local_project_dir')
         if not remote_project_dir:
@@ -32,17 +37,20 @@ class Deployer():
 
         if missed:
             raise Exception(
-                'dconf is not satisfied,%s %s required' % (','.join(missed), 'is' if len(missed) == 1 else 'are'))
+                'deploy config is not satisfied,%s %s required' % (
+                    ','.join(missed), 'is' if len(missed) == 1 else 'are'))
 
         remote_uwsgi_path = conf.get('remote_uwsgi_path', join(remote_project_dir, 'uwsgi.ini'))
         remote_requirements_path = conf.get('remote_requirements_path',
                                             join(remote_project_dir, 'requirements.txt'))
         ignore_path = conf.get('ignore_path', join(local_project_dir, 'd_ignore'))
 
-        self.user = user
         self.host = host
-        self.password = password
         self.port = port
+        self.ssh_pri_key = paramiko.RSAKey.from_private_key_file(pri_key,
+                                                                 password=pri_key_password) if pri_key else None
+        self.user = user
+        self.password = password
         self.remote_project_dir = remote_project_dir
         self.local_project_dir = local_project_dir
         self.remote_uwsgi_path = remote_uwsgi_path
@@ -56,27 +64,29 @@ class Deployer():
         self.tmp_zip = 'tmp.zip'
 
     def __enter__(self):
-        try:
-            print('Start to connect to host...')
-            self.sf = paramiko.Transport((self.host, self.port))
-            print('Connection succeeded!')
-        except Exception as e:
-            raise Exception('Connection to %s failed, please check the network and ensure your host is reachable:' % self.host, e)
-        try:
-            print('Start to login...')
-            self.sf.connect(username=self.user, password=self.password)
-            print('Login succeeded!')
-        except Exception as e:
-            raise Exception('Login failed with user:%s,password:%s, are they correct? Exceptions:' % (self.user, self.password), e)
-
-        self.sftp = paramiko.SFTPClient.from_transport(self.sf)
+        print('Start to connect to host...')
+        self.transport = paramiko.Transport((self.host, self.port))
+        print('Connection succeeded!')
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(self.host, username='root', password=self.password, allow_agent=True)
+        if self.ssh_pri_key:
+            print('Start to login...')
+            self.transport.connect(username=self.user, pkey=self.ssh_pri_key)
+            self.sftp = paramiko.SFTPClient.from_transport(self.transport)
+            self.ssh.connect(hostname=self.host, port=self.port, username=self.user, pkey=self.ssh_pri_key)
+            print('Login succeeded!')
+        else:
+            print('Start to login...')
+            self.transport.connect(username=self.user, password=self.password)
+            self.sftp = paramiko.SFTPClient.from_transport(self.transport)
+            self.ssh.connect(hostname=self.host, port=self.port, username=self.user, password=self.password,
+                             allow_agent=True)
+            print('Login succeeded!')
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.sf.close()
+        self.transport.close()
         os.remove(self.tmp_zip)
         return False
 
@@ -195,7 +205,10 @@ class Deployer():
         tmp_socket = re.findall(':(\d+)', uwsgi_socket)
         tmp_http = re.findall(':(\d+)', uwsgi_http)
         if tmp_socket or tmp_http:
-            port = tmp_socket[0] or tmp_http[0]
+            if tmp_socket:
+                port = tmp_socket[0]
+            else:
+                port = tmp_http[0]
         else:
             raise Exception("uwsgi.ini file lacks 'socket' or 'http' parameter, deployment is canceled")
 
