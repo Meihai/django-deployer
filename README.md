@@ -14,11 +14,11 @@ $ python deployer.py /some_path/d_conf
 
 ## 部署配置文件
 
-参数中的文件路径可使用 `~` 符号表示登录用户的家目录，如 `~/projects/MyApp`
+参数中的本地文件路径可使用 `~` 符号表示登录用户的家目录，如 `~/projects/MyApp`
 
 参数:
 - `host` 服务器主机地址，必填
-- `port` 服务器 SSH 端口，默认22
+- `port` 服务器 SSH 端口，默认 22
 - `pri_key` SSH 私钥文件绝对路径，`pri_key` 和 `password` 至少选择填写一个，优先使用 SSH 私钥文件登录
 - `pri_key_password` SSH 私钥文件密码，如果没有的话请注释该行
 - `user` 登录用户名，默认 `root`
@@ -27,6 +27,7 @@ $ python deployer.py /some_path/d_conf
 - `remote_project_dir` 远程项目路径，必填
 - `remote_uwsgi_path` 远程 uwsgi 配置文件路径，默认 `remote_project_dir/uwsgi.ini`
 - `remote_requirements_path` 远程 requirements.txt 文件路径，默认 `remote_project_dir/requirements.txt`
+- `remote_shell_path` 远程 shell 脚本文件路径，用于部署后执行，如不需要的话请注释该行
 - `ignore_path` 本地上传忽略文件路径，建议放在 web 应用根目录下，默认 `local_project_dir/d_ignore`
 - `collectstatic` 对于 django 应用是否在上传前先收集静态文件，非 django 项目可忽略该参数，默认 False
 
@@ -55,7 +56,8 @@ $ python deployer.py /some_path/d_conf
 - [x] 支持自动收集 django 静态文件
 - [x] 支持自动安装 python 包依赖
 - [x] 支持自动启动或重启应用
-- [ ] 支持自动启动或重启应用后执行自定义 shell 命令，如重启 celery
+- [x] 支持自动启动或重启应用后执行自定义 shell 脚本，如执行重启 celery 命令
+- [ ] 支持日志输出到文件
 
 # 联系我
 
